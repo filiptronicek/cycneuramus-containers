@@ -10,6 +10,10 @@ on:
         description: "Comma-separated list of applications to build (e.g., caddy,patroni)"
         required: false
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   detect:
     runs-on: ubuntu-latest
