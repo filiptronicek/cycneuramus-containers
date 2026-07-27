@@ -6,7 +6,10 @@ FROM rust:alpine${ALPINE_VERSION} AS builder
 ARG REDLIB_SRC=https://github.com/redlib-org/redlib
 ARG REDLIB_COMMIT=a4d36e954cf1bd64f209cd8868c5a29edc81b374
 
-RUN apk add --no-cache git make musl-dev perl
+RUN apk add --no-cache build-base clang20-libclang cmake git perl
+
+# Bindgen loads libclang at build time, which requires a dynamically linked host binary.
+ENV RUSTFLAGS="-C target-feature=-crt-static"
 
 WORKDIR /redlib
 
@@ -20,7 +23,7 @@ RUN echo "finished building redlib from ${REDLIB_SRC}@${REDLIB_COMMIT}!"
 
 FROM alpine:${ALPINE_VERSION} AS release
 
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates libgcc
 
 COPY --from=builder /redlib/target/release/redlib /usr/local/bin/redlib
 
