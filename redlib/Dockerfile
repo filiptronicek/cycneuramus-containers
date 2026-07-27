@@ -3,16 +3,20 @@ ARG ALPINE_VERSION=3.22
 
 FROM rust:alpine${ALPINE_VERSION} AS builder
 
-ARG REDLIB_SRC=https://github.com/chowder/redlib.git
-ARG REDLIB_BRANCH=feature/tls-openssl
+ARG REDLIB_SRC=https://github.com/redlib-org/redlib
+ARG REDLIB_COMMIT=a4d36e954cf1bd64f209cd8868c5a29edc81b374
 
 RUN apk add --no-cache git make musl-dev perl
 
 WORKDIR /redlib
 
-RUN git clone --depth 1 --branch "${REDLIB_BRANCH}" "${REDLIB_SRC}" .
+RUN git init . \
+ && git remote add origin "${REDLIB_SRC}" \
+ && git fetch --depth 1 origin "${REDLIB_COMMIT}" \
+ && git checkout --detach "${REDLIB_COMMIT}"
+
 RUN cargo build --release --locked --bin redlib
-RUN echo "finished building redlib from ${REDLIB_SRC}/${REDLIB_BRANCH}!"
+RUN echo "finished building redlib from ${REDLIB_SRC}@${REDLIB_COMMIT}!"
 
 FROM alpine:${ALPINE_VERSION} AS release
 
